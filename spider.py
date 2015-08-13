@@ -1,16 +1,12 @@
 import re
-import urllib.request
-import urllib
-from socket import timeout
+from urllib.request import Request, urlopen
 from collections import deque
 
 queue = deque()
 visited = set()
 
-url = 'http://news.dbanotes.net'  # 入口页面, 可以换成别的
-# url = "http://lispinsummerprojects.org/completed-projects"
-# url = 'http://www.yyets.com/resourcelist'  # 入口页面, 可以换成别的
-# url = 'http://www.yyets.com/resource/29626'  # 入口页面, 可以换成别的
+url = 'http://stackoverflow.com/'
+
 queue.append(url)
 cnt = 0
 
@@ -22,7 +18,8 @@ while queue:
     cnt += 1
 
     try:
-        urlop = urllib.request.urlopen(url, timeout=10)
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        urlop = urlopen(req)
     except:
         print("HTTP Error 403: Forbidden")
         continue
