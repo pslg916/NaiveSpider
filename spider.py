@@ -10,6 +10,28 @@ url = 'http://stackoverflow.com/'
 queue.append(url)
 cnt = 0
 
+def judge_cur_link(link):
+    flag = False
+
+    if 'http' not in link:
+        return flag
+    if link in visited:
+        return flag
+    if link in queue:
+        return flag
+
+    flag = True
+    return flag
+
+def filter_link_list(link_list, visited, queue):
+    for link in link_list:
+        if judge_cur_link(link):
+            queue.append(link)
+        #  if 'http' in link:
+            #  if link not in visited:
+                #  if link not in queue:
+                    #  queue.append(link)
+
 while queue:
     url = queue.popleft()  # 队首元素出队
     visited |= {url}  # 标记为已访问
@@ -44,12 +66,6 @@ while queue:
 # 正则表达式提取页面中所有队列, 并判断是否已经访问过, 然后加入待爬队列
     linkre = re.compile('href=\"(.+?)\"')
     link_list = linkre.findall(data)
-    for link in link_list:
-        # if 'http' in link and link not in visited:
-        if 'http' in link:
-            if link not in visited:
-                if link not in queue:
-                    queue.append(link)
-            # print('加入队列 --->  ' + link)
+    valid_list = filter_link_list(link_list, visited, queue)
 
 print("抓取结束。")
