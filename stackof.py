@@ -1,12 +1,14 @@
 import re
-from urllib.request import Request, urlopen
+import goslate
+import requests
 from collections import deque
+from urllib.request import Request, urlopen
 
 
 page_list = deque()
 visited = set()
 
-for i in range(1, 10):
+for i in range(1, 2):
     url = str.format("http://stackoverflow.com/questions?page={0}&sort=newest", i)
     page_list.append(url)
 
@@ -39,6 +41,22 @@ def filter_link_list(link_list, visited):
             valid_list.append(link)
     return valid_list
 
+def grep_question(url):
+    response = requests.get(url)
+    html_str = response.text
+
+    html_str = html_str.split('<td class="postcell">')
+    question = html_str[1].split('</td>')[0]
+
+    question = question.split('<div class="post-text" itemprop="text">')
+    question = question[1].split('</div>')[0]
+
+    return question
+
+def str_trans(str_en):
+    gs = goslate.Goslate()
+    str_zh = gs.translate(str_en, 'zh-CN')
+    return str_zh
 
 for page, node_url in enumerate(page_list):
 
@@ -75,6 +93,16 @@ for page, node_url in enumerate(page_list):
     for url in valid_list:
         cnt += 1
         visited |= {url}  # 标记为已访问
-        print(str.format("正在抓取第{0}页/第{1}题, <--- {2}", page+1, cnt, url))
+        print(str.format("正在抓取第{0}页/第{1}题\t <--- {2}", page+1, cnt, url))
+
+        # 解析问题页面的html
+        question_html = grep_question(url)
+        print(question_html)
+        print('---------------------------------------\n')
+
+        #  question_zh = str_trans(question_html)
+        #  print(question_zh)
+
+        break
 
 print("抓取结束。")
