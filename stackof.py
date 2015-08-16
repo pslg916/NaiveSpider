@@ -63,12 +63,14 @@ def grep_tags(url):
 def grep_answers(url):
     response = requests.get(url)
     html_str = response.text
-    html_str = html_str.split('<td class="answercell">')
-    answers = html_str[1].split('</td>')[0]
-    print(len(answers))
-    #  question = question.split('<div class="post-text" itemprop="text">')
-    #  question = question[1].split('</div>')[0]
-    return answers
+    answers = html_str.split('<td class="answercell">')
+    answer_list = []
+    for i in range(1, len(answers)):
+        per_ans = answers[i].split('</td>')[0]
+        per_ans = per_ans.split('<div class="post-text" itemprop="text">')
+        per_ans = per_ans[1].split('</div>')[0]
+        answer_list.append(per_ans)
+    return answer_list
 
 def str_trans(str_en):
     gs = goslate.Goslate()
@@ -113,10 +115,10 @@ for page, node_url in enumerate(page_list):
         print(str.format("正在抓取第{0}页/第{1}题\t <--- {2}", page+1, cnt, url))
 
         # 解析问题页面的html
-        question_html = grep_question(url)
+        question = grep_question(url)
         tag_list = grep_tags(url)
-        #  print(question_html)
-        print(tag_list)
+        answer_list = grep_answers(url)
+        print(question)
         print('---------------------------------------\n')
 
         #  question_zh = str_trans(question_html)
