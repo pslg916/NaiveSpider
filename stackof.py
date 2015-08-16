@@ -12,6 +12,7 @@ for i in range(1, 2):
     url = str.format("http://stackoverflow.com/questions?page={0}&sort=newest", i)
     page_list.append(url)
 
+page_list = ["http://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array"]
 
 def judge_cur_link(link, visited):
     is_question = False
@@ -44,14 +45,30 @@ def filter_link_list(link_list, visited):
 def grep_question(url):
     response = requests.get(url)
     html_str = response.text
-
     html_str = html_str.split('<td class="postcell">')
     question = html_str[1].split('</td>')[0]
-
     question = question.split('<div class="post-text" itemprop="text">')
     question = question[1].split('</div>')[0]
-
     return question
+
+def grep_tags(url):
+    response = requests.get(url)
+    html_str = response.text
+    html_str = html_str.split('<div class="post-taglist">')
+    html_str = html_str[1].split('</div>')[0]
+    tag_re = re.compile('>(.+?)</a>')
+    tag_list = tag_re.findall(html_str)
+    return tag_list
+
+def grep_answers(url):
+    response = requests.get(url)
+    html_str = response.text
+    html_str = html_str.split('<td class="answercell">')
+    answers = html_str[1].split('</td>')[0]
+    print(len(answers))
+    #  question = question.split('<div class="post-text" itemprop="text">')
+    #  question = question[1].split('</div>')[0]
+    return answers
 
 def str_trans(str_en):
     gs = goslate.Goslate()
@@ -97,7 +114,9 @@ for page, node_url in enumerate(page_list):
 
         # 解析问题页面的html
         question_html = grep_question(url)
-        print(question_html)
+        tag_list = grep_tags(url)
+        #  print(question_html)
+        print(tag_list)
         print('---------------------------------------\n')
 
         #  question_zh = str_trans(question_html)
