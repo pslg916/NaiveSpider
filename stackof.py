@@ -1,4 +1,5 @@
 import re
+import bs4
 import goslate
 import requests
 from collections import deque
@@ -12,7 +13,6 @@ for i in range(1, 2):
     url = str.format("http://stackoverflow.com/questions?page={0}&sort=newest", i)
     page_list.append(url)
 
-page_list = ["http://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array"]
 
 def judge_cur_link(link, visited):
     is_question = False
@@ -72,10 +72,43 @@ def grep_answers(url):
         answer_list.append(per_ans)
     return answer_list
 
-def str_trans(str_en):
+def html_trans(html_en):
     gs = goslate.Goslate()
-    str_zh = gs.translate(str_en, 'zh-CN')
-    return str_zh
+    soup = bs4.BeautifulSoup(html_en, "html.parser")
+    code_list = soup.find_all('code')
+
+    text_en = soup.text
+    for code in code_list:
+        text_en = text_en.replace(code.text, "edocsiereh")
+
+    text_zh = gs.translate(text_en, 'zh')
+    text_zh = text_zh.split("edocsiereh")
+    text_en = text_en.split("edocsiereh")
+
+    for i,zh in enumerate(text_zh):
+        en = text_en[i]
+        text_zh[i] = str.format("<p>{0}<br>{1}</p>", en, zh)
+
+    for i,code in enumerate(code_list):
+        code_list[i] = str.format("<pre>{0}</pre>", code)
+
+    for i,code in enumerate(code_list):
+        text_zh.insert(i*2+1, code)
+
+    html_zh = ""
+    for text in text_zh:
+        html_zh += str(text)
+
+    soup_zh = bs4.BeautifulSoup(html_zh, "html.parser")
+    print(soup_zh.prettify(formatter="html"))
+
+    return html_zh
+
+def part_to_full_html(part):
+    soup = bs4.BeautifulSoup(part, "html.parser")
+    full_html = soup.prettify(formatter="html")
+    print(full_html)
+    return full_html
 
 for page, node_url in enumerate(page_list):
 
@@ -112,18 +145,21 @@ for page, node_url in enumerate(page_list):
     for url in valid_list:
         cnt += 1
         visited |= {url}  # 标记为已访问
-        print(str.format("正在抓取第{0}页/第{1}题\t <--- {2}", page+1, cnt, url))
+        #  print(str.format("正在抓取第{0}页/第{1}题\t <--- {2}", page+1, cnt, url))
+
+        url = "http://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array"
 
         # 解析问题页面的html
         question = grep_question(url)
         tag_list = grep_tags(url)
         answer_list = grep_answers(url)
-        print(question)
-        print('---------------------------------------\n')
+        #  print(question)
+        #  print(tag_list)
+        #  print('---------------------------------------\n')
 
-        #  question_zh = str_trans(question_html)
+        question_zh = html_trans(question)
         #  print(question_zh)
 
         break
 
-print("抓取结束。")
+#  print("抓取结束。")
