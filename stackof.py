@@ -1,4 +1,5 @@
 import re
+import os
 import bs4
 import goslate
 import requests
@@ -46,6 +47,10 @@ def grep_title(url):
     title_dash = url.split('/')[-1]
     title = title_dash.replace('-', ' ')
     return title
+
+def grep_index(url):
+    index = url.split('/')[-2]
+    return index
 
 def title_trans(title_en, keep_en):
     gs = goslate.Goslate()
@@ -156,6 +161,19 @@ def part_to_full_html(part):
     print(full_html)
     return full_html
 
+def html_tags(tag_list):
+    tags_str = ""
+    for tag in tag_list:
+        tags_str += tag + ' '
+    tags_html = str.format("<pre>{0}</pre>", tags_str)
+    return tags_html
+
+
+out_dir = "output"
+if os.path.isdir(out_dir):
+    os.system(str.format("rm -rf {0}", out_dir))
+os.system(str.format("mkdir {0}", out_dir))
+
 for page, node_url in enumerate(page_list):
 
     try:
@@ -191,31 +209,38 @@ for page, node_url in enumerate(page_list):
     for url in valid_list:
         cnt += 1
         visited |= {url}  # 标记为已访问
-        #  print(str.format("正在抓取第{0}页/第{1}题\t <--- {2}", page+1, cnt, url))
+        print(str.format("正在抓取第{0}页/第{1}题\t <--- {2}", page+1, cnt, url))
 
-        #  url = "http://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array"
+        # url = "http://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array"
 
         # Grep En Info
+        index = grep_index(url)
         title_en = grep_title(url)
         answer_list_en = grep_answers(url)
         question_html_en = grep_question(url)
 
         # Grep Question Tags List
-        tag_list = grep_tags(url)
+        tags_list = grep_tags(url)
+        tags_html = html_tags(tags_list)
 
         # En to Zh Translation
         title_html_zh = title_trans(title_en, True)
         question_html_zh = html_trans(question_html_en, False)
-        answer_list_zh = html_list_trans(answer_list_en)
+        answer_html_list_zh = html_list_trans(answer_list_en)
 
-        print(title_html_zh)
-        print('Tags:', tag_list)
-        print(question_html_zh)
-        for i,answer in enumerate(answer_list_zh):
-            print('Answer', i, '----------------------------------------------------------------')
-            print(answer)
+        # combine into final html
+        final_html = ""
+        final_html += title_html_zh
+        final_html += tags_html
+        final_html += question_html_zh
+        for i,answer_html in enumerate(answer_html_list_zh):
+            final_html += str.format("<h2>Answer{0}</h2>", i)
+            final_html += '<HR style="border:1 dashed #987cb9" color=#987cb9 SIZE=1>'
+            final_html += answer_html
 
-        if cnt > 2:
-            break
+        with open(str.format("{0}/{1}.html", out_dir, index), 'w') as f:
+            f.write(final_html)
 
-#  print("抓取结束。")
+        # break
+
+print("抓取结束。")
